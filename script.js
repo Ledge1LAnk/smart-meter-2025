@@ -10,13 +10,14 @@ let monthlyBillingLimit = 10000.00;
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDulSyTqydqL3n8WwY0KAqa9dgVSP3BQiE",
-  authDomain: "iyanu-cfp-meter.firebaseapp.com",
-  databaseURL: "https://iyanu-cfp-meter-default-rtdb.firebaseio.com",
-  projectId: "iyanu-cfp-meter",
-  storageBucket: "iyanu-cfp-meter.firebasestorage.app",
-  messagingSenderId: "349401483580",
-  appId: "1:349401483580:web:bd66935087755c80e8f639"
+  apiKey: "AIzaSyCniD14L_jYPyhpZpAzfheddjMseT23fUw",
+  authDomain: "smart-meter-2025-c7b32.firebaseapp.com",
+  databaseURL: "https://smart-meter-2025-c7b32-default-rtdb.firebaseio.com",
+  projectId: "smart-meter-2025-c7b32",
+  storageBucket: "smart-meter-2025-c7b32.firebasestorage.app",
+  messagingSenderId: "958202144045",
+  appId: "1:958202144045:web:90240c1f4e525a8ede5fa4",
+  measurementId: "G-NNLLT2TEZR"
 };
 
 // Initialize Firebase
@@ -471,4 +472,5 @@ function loadHistoricalData() {
 loadHistoricalData();
 
 // Set initial timeout
+
 dataTimeoutHandle = setTimeout(resetDisplay, 30000); 
