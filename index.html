@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IoT Smart Meter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="greeting">
+        <h1>IoT Smart Meter Dashboard</h1>
+        <p>Real-time Energy monitoring with bypass detection & billing</p>
+      </div>
+      <div class="status" id="connectionStatus">
+        <div class="status-indicator"></div>
+        <span>Disconnected</span>
+      </div>
+    </header>
+
+    <!-- Bypass Detection Alert Section -->
+    <div class="alert-section" id="bypassAlert" style="display: none;">
+      <div class="alert-card danger">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-content">
+          <h3>BYPASS DETECTED!</h3>
+          <p>Unauthorized tampering detected. Meter has been isolated for safety.</p>
+          <div class="alert-details">
+            <span>Detection Time: <span id="bypassTime">--</span></span>
+            <span>Location: <span id="bypassLocation">--</span></span>
+          </div>
+        </div>
+        <button class="alert-dismiss" onclick="dismissBypassAlert()">×</button>
+      </div>
+    </div>
+
+    <div class="dashboard">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Voltage</span>
+          <span class="card-icon">⚡</span>
+        </div>
+        <div class="card-value" id="voltage">0.00</div>
+        <span class="card-unit">Volts</span>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Current</span>
+          <span class="card-icon">🔌</span>
+        </div>
+        <div class="card-value" id="current">0.00</div>
+        <span class="card-unit">Amps</span>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Power</span>
+          <span class="card-icon">📊</span>
+        </div>
+        <div class="card-value" id="power">0.00</div>
+        <span class="card-unit">Watts</span>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Energy</span>
+          <span class="card-icon">🔋</span>
+        </div>
+        <div class="card-value" id="energy">0.00</div>
+        <span class="card-unit">kWh</span>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Frequency</span>
+          <span class="card-icon">🔄</span>
+        </div>
+        <div class="card-value" id="frequency">0.00</div>
+        <span class="card-unit">Hz</span>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Power Factor</span>
+          <span class="card-icon">📐</span>
+        </div>
+        <div class="card-value" id="powerFactor">0.00</div>
+        <span class="card-unit">Ratio</span>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+    
+    <!-- Bypass Status Section -->
+    <div class="bypass-section">
+      <h3 class="section-title">Security Status</h3>
+      <div class="bypass-container">
+        <div class="card bypass-card" id="bypassCard">
+          <div class="card-header">
+            <span class="card-title">Bypass Status</span>
+            <span class="card-icon">🛡️</span>
+          </div>
+          <div class="bypass-status" id="bypassStatus">
+            <div class="status-indicator-large safe">
+              <div class="semi-circle">
+                <div class="semi-circle-fill"></div>
+              </div>
+            </div>
+            <div class="status-text">
+              <div class="status-title">System Secure</div>
+              <div class="status-message">No tampering detected</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+    
+    <!-- Billing Overview Section -->
+    <div class="controls-section">
+      <h3 class="section-title">Billing Overview</h3>
+      <div class="controls" id="meterControls">
+        <!-- Current Bill Card (Extended Width) -->
+        <div class="control-card billing-card-extended" id="billingCard">
+          <div class="power-icon">💰</div>
+          <h3 class="control-title">Current Bill</h3>
+          <div class="billing-display">
+            <div class="billing-amount" id="currentBill">₦0.00</div>
+            <div class="billing-details">
+              <div class="billing-item">
+                <span>Rate: ₦<span id="ratePerKwh">209.50</span>/kWh</span>
+              </div>
+              <div class="billing-item">
+                <span>This Month: ₦<span id="monthlyBill">0.00</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+    
+    <!-- Energy Chart Section -->
+    <div class="chart-section">
+      <h3 class="section-title">Energy Consumption History</h3>
+      <div class="chart-header">
+        <h3 class="chart-title">Historical Energy Usage</h3>
+        <div class="time-range-selector" id="energy-range">
+          <button class="time-range-btn active" data-range="24">Last 24h</button>
+          <button class="time-range-btn" data-range="168">Last 7d</button>
+          <button class="time-range-btn" data-range="672">Last 4w</button>
+        </div>
+      </div>
+      <div class="chart-container"><canvas id="energyChart"></canvas></div>
+    </div>
+
+    <hr class="section-divider">
+    
+    <!-- Billing Chart Section -->
+    <div class="chart-section">
+      <h3 class="section-title">Billing History</h3>
+      <div class="chart-header">
+        <h3 class="chart-title">Historical Billing (₦)</h3>
+        <div class="time-range-selector" id="billing-range">
+          <button class="time-range-btn active" data-range="24">Last 24h</button>
+          <button class="time-range-btn" data-range="168">Last 7d</button>
+          <button class="time-range-btn" data-range="672">Last 4w</button>
+        </div>
+      </div>
+      <div class="chart-container"><canvas id="billingChart"></canvas></div>
+    </div>
+  </div>
+  
+  <footer>
+    IoT Smart Meter with Bypass Detection - Real-Time Energy Monitoring & Billing System
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html> 
